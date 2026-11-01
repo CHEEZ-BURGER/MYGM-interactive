@@ -1,0 +1,454 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[data-page='hub'] {
+  --bg: #0c0d10;
+  overflow-x: hidden;
+}
+#hub {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+#hub > :not(.hub-bg) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 배경: 가운데 카드의 작품 사진이 카드와 함께 미끄러진다 */
+.hub-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hub-bg__panel {
+  /* 양옆을 넓혀 두고 가장자리를 부드럽게 지워, 이웃 사진과 겹치며 이어지게 */
+  --feather: 22vw;
+  position: absolute;
+  inset: 0 calc(var(--feather) * -1);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--feather) * 2), #000 calc(100% - var(--feather) * 2), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--feather) * 2), #000 calc(100% - var(--feather) * 2), transparent 100%);
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+.hub-bg__panel::after {
+  /* 카드와 글자가 묻히지 않게 덮는 단색 */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 13, 16, 0.72);
+}
+.hub-bg__panel.is-placeholder[data-media^='poem'] {
+  background-color: #22365a;
+}
+.hub-bg__panel.is-placeholder[data-media^='novel'] {
+  background-color: #d9768f;
+}
+.hub-bg__panel.is-placeholder[data-media^='play'] {
+  background-color: #6e4c25;
+}
+.hub-bg__panel.is-placeholder[data-media^='crit'] {
+  background-color: #5b5e63;
+}
+
+/* 로고: 머리 띠 없이 한 줄 로고만 가운데에 */
+.hub-head {
+  /* 로고는 정확히 가운데, 목록 보기·소리 버튼은 양 끝 */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 72px;
+  padding: 0 var(--gutter);
+}
+.hub-head__start {
+  justify-self: start;
+}
+.hub-head__end {
+  justify-self: end;
+}
+.hub-head__brand {
+  display: inline-flex;
+  color: var(--ink);
+  text-decoration: none;
+}
+.hub-head .logo--wordmark {
+  height: 24px;
+}
+.hub-title {
+  margin: 0;
+  padding: 0 var(--gutter);
+  text-align: center;
+  font: 600 15px/1.5 var(--sans);
+  color: var(--ink-2);
+}
+@media (max-width: 560px) {
+  .hub-head {
+    height: 60px;
+  }
+  .hub-head .logo--wordmark {
+    height: 17px;
+  }
+  .hub-title {
+    font-size: 14px;
+  }
+}
+
+/* 카드 띠 */
+.hub-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 1vh 0 2vh;
+}
+.strip {
+  --gap: 18px;
+  --cw: min(68vw, max(240px, min(21vw, 300px)));
+  --ch: min(calc(var(--cw) * 1.42), calc(100svh - 300px));
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+.strip__track {
+  position: relative;
+  height: var(--ch);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  column-gap: var(--gap); /* JS가 간격으로 읽는다 */
+}
+.poster {
+  --t: 0; /* 가운데에 가까울수록 1 */
+  position: absolute;
+  top: 0;
+  left: calc(50% - var(--cw) / 2);
+  width: var(--cw);
+  height: var(--ch);
+  will-change: transform;
+}
+.poster__link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius);
+  color: #fff;
+  text-decoration: none;
+  -webkit-user-drag: none;
+  /* 가운데에서 멀어질수록 위쪽을 잘라 낮아진다(겹치지 않고 높이만 변한다) */
+  clip-path: inset(calc((1 - var(--t)) * 8%) 0 0 0 round var(--radius));
+  transition:
+    translate 1s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.8s var(--ease);
+  transition-delay: var(--intro, 0s);
+}
+.is-intro .poster__link {
+  translate: 0 64px;
+  opacity: 0;
+}
+.poster__img {
+  position: absolute;
+  inset: 0 -14%;
+  /* 카드가 움직이는 반대쪽으로 사진이 살짝 늦게 따라온다 */
+  transform: translate3d(calc(var(--o, 0) * -10%), 0, 0);
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+  opacity: calc(0.4 + var(--t) * 0.6);
+}
+.poster__img.is-placeholder[data-media^='poem'] {
+  background-color: #22365a;
+}
+.poster__img.is-placeholder[data-media^='novel'] {
+  background-color: #d9768f;
+}
+.poster__img.is-placeholder[data-media^='play'] {
+  background-color: #6e4c25;
+}
+.poster__img.is-placeholder[data-media^='crit'] {
+  background-color: #5b5e63;
+}
+/* 글자를 읽히게 하는 아래쪽 어둠(카드에서 유일하게 남긴 그라데이션) */
+.poster__link::after {
+  content: '';
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+}
+.poster__text {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 24px;
+  text-align: center;
+  opacity: calc(0.4 + var(--t) * 0.6);
+}
+.poster__meta {
+  position: absolute;
+  /* 잘려 낮아진 카드에서도 위쪽 글이 잘리지 않게 잘린 만큼 내려온다 */
+  top: calc((1 - var(--t)) * 8%);
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 18px;
+  font: 600 13px/1.4 var(--sans);
+  opacity: calc(0.4 + var(--t) * 0.6);
+}
+.poster__meta span:last-child {
+  font-weight: 500;
+  opacity: 0.85;
+}
+.poster__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  width: calc(var(--pp) * 100%);
+  height: 3px;
+  background: #fff;
+}
+.poster__title {
+  font: 700;
+  font-size: 16px;
+}
+.poster__by {
+  margin-top: 6px;
+  font: 500 13px/1.4 var(--sans);
+}
+.poster__teaser {
+  max-width: 22em;
+  margin-top: 12px;
+  font: 400 13.5px/1.6 var(--sans);
+  white-space: pre-line;
+  opacity: calc(var(--t) * var(--t) * 0.9);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 작품 화면에서 돌아왔을 때: 가운데 카드는 그대로 두고,
+   로고·제목은 위에서 내려오고 버튼·바닥글은 아래에서 올라오며, 옆 카드는 서서히 */
+#hub.is-back .hub-head,
+#hub.is-back .hub-title,
+#hub.is-back .hub-actions,
+#hub.is-back .hub-foot {
+  animation: none !important;
+}
+#hub.is-back .hub-head,
+#hub.is-back .hub-title {
+  opacity: 0;
+  translate: 0 -36px;
+}
+#hub.is-back .hub-actions,
+#hub.is-back .hub-foot {
+  opacity: 0;
+  translate: 0 36px;
+}
+#hub.is-back .poster:not(.is-active) .poster__link,
+#hub.is-back .poster.is-active .poster__text,
+#hub.is-back .poster.is-active .poster__meta,
+#hub.is-back .hub-bg {
+  opacity: 0;
+}
+#hub.is-back-in .hub-head,
+#hub.is-back-in .hub-title,
+#hub.is-back-in .hub-actions,
+#hub.is-back-in .hub-foot {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.6s var(--ease),
+    translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+#hub.is-back-in .hub-title,
+#hub.is-back-in .hub-actions {
+  transition-delay: 0.08s;
+}
+#hub.is-back-in .hub-foot {
+  transition-delay: 0.16s;
+}
+#hub.is-back-in .poster:not(.is-active) .poster__link,
+#hub.is-back-in .hub-bg {
+  opacity: 1;
+  transition: opacity 0.7s var(--ease) 0.15s;
+}
+#hub.is-back-in .poster.is-active .poster__text,
+#hub.is-back-in .poster.is-active .poster__meta {
+  opacity: calc(0.4 + var(--t) * 0.6);
+  transition: opacity 0.6s var(--ease) 0.2s;
+}
+
+/* 하단 버튼 */
+.hub-actions {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--gutter);
+}
+/* 읽기 버튼은 본문 줄(좌우 여백 안) 폭을 다 쓴다. 넓은 화면에서는 너무 길어지지 않게 제한 */
+.hub-actions__open {
+  width: 100%;
+  max-width: 26rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* 슬롯: 한 줄 높이만 보이고, 글자가 위로 넘어간다 */
+.slot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.25em;
+  line-height: 1.25em;
+  overflow: hidden;
+}
+/* 모든 글자를 버튼 가운데에 겹쳐 두고, 바뀔 때만 위아래로 움직인다 */
+.slot__text {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  max-width: 100%;
+  white-space: nowrap;
+}
+/* 넘치면 제목만 줄이고 '읽기'는 남긴다 */
+.slot__title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slot__verb {
+  flex: none;
+  margin-left: 0.3em;
+}
+.slot__text.is-next {
+  transform: translateY(110%);
+}
+
+/* 목록 보기 */
+.list ul {
+  list-style: none;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: grid;
+  gap: 4px;
+}
+.list a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+.list a:hover {
+  background: var(--fill);
+}
+.list__thumb {
+  flex: none;
+  width: 64px;
+  height: 88px;
+  border-radius: 4px;
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+}
+.list__thumb.is-placeholder[data-media^='poem'] {
+  background-color: #22365a;
+}
+.list__thumb.is-placeholder[data-media^='novel'] {
+  background-color: #d9768f;
+}
+.list__thumb.is-placeholder[data-media^='play'] {
+  background-color: #6e4c25;
+}
+.list__thumb.is-placeholder[data-media^='crit'] {
+  background-color: #5b5e63;
+}
+.list__text {
+  display: grid;
+  gap: 4px;
+}
+.list__text small {
+  font: 600 13px/1.4 var(--sans);
+  color: var(--ink-3);
+}
+.list__text strong {
+  font: 700 18px/1.4 var(--sans);
+}
+.list__text em {
+  font: 400 14px/1.4 var(--sans);
+  font-style: normal;
+  color: var(--ink-2);
+}
+
+.hub-foot {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 12px var(--gutter) calc(18px + env(safe-area-inset-bottom));
+  text-align: center;
+  font: 400 12.5px/1.6 var(--sans);
+  color: var(--ink-3);
+}
+.hub-foot p {
+  margin: 0;
+}
+.hub-foot__emblem {
+  height: 20px;
+  color: var(--ink-3);
+}
+
+/* 머리·버튼·바닥글이 차례로 떠오른다 */
+.hub-head,
+.hub-title,
+.hub-actions,
+.hub-foot {
+  opacity: 0;
+}
+.is-ready .hub-head,
+.is-ready .hub-title,
+.is-ready .hub-actions,
+.is-ready .hub-foot {
+  opacity: 1;
+  animation: hub-rise 0.9s var(--ease) both;
+}
+.is-ready .hub-title {
+  animation-delay: 0.15s;
+}
+.hub-head {
+  animation-delay: 0.05s;
+}
+.hub-actions {
+  animation-delay: 0.55s;
+}
+.hub-foot {
+  animation-delay: 0.7s;
+}
+@keyframes hub-rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}

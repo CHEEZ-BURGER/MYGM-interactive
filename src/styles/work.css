@@ -1,0 +1,1060 @@
+/* 스크롤바가 생기거나 사라질 때 본문 폭이 바뀌며 글이 옆으로 튀지 않게 자리를 늘 잡아 둔다 */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ── 작품별 테마 ─────────────────────────────────────── */
+[data-work='poem'] {
+  --bg: #0e1626;
+  --ink: #eef2f8;
+  --ink-2: #b5c0d2;
+  --ink-3: #7584a0;
+  --fill: #1a2335;
+  --fill-2: #243046;
+  --line: #243046;
+  --ph: #22365a;
+}
+[data-work='novel'] {
+  --bg: #ffffff;
+  --ph: #f3d4dc;
+}
+[data-work='play'] {
+  --bg: #15120e;
+  --ink: #f4ede2;
+  --ink-2: #c7bba9;
+  --ink-3: #8a7f70;
+  --fill: #221d17;
+  --fill-2: #2e2820;
+  --line: #2e2820;
+  --ph: #3a2d1d;
+}
+[data-work='play'].is-morning {
+  --bg: #fbf7ef;
+  --ink: #2a241b;
+  --ink-2: #5e5446;
+  --ink-3: #9a8f7f;
+  --fill: #f1ebdf;
+  --fill-2: #e7dfcf;
+  --line: #e7dfcf;
+  --ph: #efe2c8;
+  transition: background-color 1.6s var(--ease);
+}
+[data-work='critique'] {
+  --bg: #f7f7f5;
+  --fill: #ececea;
+  --fill-2: #e0e0dd;
+  --line: #e0e0dd;
+  --ph: #d6d6d2;
+}
+
+/* 한 줄(컬럼) 기준: 글·이미지·버튼이 모두 같은 왼쪽 끝을 공유한다 */
+.cast,
+.work-body,
+.footnotes,
+.afterword,
+.work-nav {
+  width: 100%;
+  max-width: calc(var(--measure) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ── 상단 바 ─────────────────────────────────────────── */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  padding: 8px var(--gutter) 10px;
+  /* 반투명 유리: 뒤의 글과 이미지가 흐리게 비친다 */
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
+}
+/* 휴대폰에서는 아래로 지나가는 글이 비쳐 산만하지 않게 거의 불투명하게 */
+@media (max-width: 640px) {
+  .topbar {
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+  }
+}
+.is-reading .topbar {
+  visibility: visible;
+  opacity: 1;
+}
+.segments,
+.topbar__row {
+  max-width: 64rem;
+  margin-inline: auto;
+}
+.segments {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+.seg {
+  flex: 1;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.seg span {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.seg span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform: scaleX(var(--p, 0));
+  transform-origin: 0 50%;
+}
+.topbar__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+/* 줄은 화면 가운데에 놓여 있으므로 줄의 50% = 화면 전체 폭의 가운데 */
+.topbar__title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  justify-items: center;
+  max-width: calc(100% - 380px);
+  margin: 0;
+  text-align: center;
+}
+.topbar__title strong,
+.topbar__chapter {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.topbar__title strong {
+  font: 700 17px/1.3 var(--sans);
+}
+.topbar__chapter {
+  font: 500 12.5px/1.4 var(--sans);
+  color: var(--ink-3);
+}
+.topbar__chapter:empty {
+  display: none;
+}
+.topbar__tools {
+  display: flex;
+  gap: 6px;
+}
+@media (max-width: 480px) {
+  .topbar__title {
+    visibility: hidden;
+  }
+}
+
+/* 시트(목차·글자 크기) */
+.sheet {
+  position: fixed;
+  top: 72px;
+  right: max(var(--gutter), calc((100vw - 64rem) / 2));
+  z-index: 40;
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  padding: 16px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.sheet__title {
+  margin: 0 12px 8px;
+  font: 700 15px/1.4 var(--sans);
+}
+.toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.toc button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  font: 500 15px/1.45 var(--sans);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.toc button:hover {
+  background: var(--fill);
+  color: var(--ink);
+}
+.sizes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 0 6px 6px;
+}
+.sizes button {
+  height: 48px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--fill);
+  font-family: var(--serif);
+  cursor: pointer;
+}
+.sizes button[aria-checked='true'] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* ── 커버 ───────────────────────────────────────────── */
+.cover {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px var(--gutter);
+  color: #fff;
+  background: #111;
+}
+.cover__img {
+  position: absolute;
+  inset: 0;
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+}
+.cover__img::after {
+  /* 글자를 읽히게 하는 단색 덮개 */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+}
+.cover__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 30rem;
+  text-align: center;
+}
+.cover__logo {
+  height: 30px;
+  margin-bottom: 28px;
+}
+.cover__label {
+  margin: 0 0 8px;
+  font: 600 16px/1.5 var(--sans);
+}
+.cover__title {
+  margin: 0 0 12px;
+  font: 700 clamp(34px, 9vw, 60px) / 1.25 var(--sans);
+}
+.cover__by {
+  margin: 0 0 6px;
+  font: 500 17px/1.5 var(--sans);
+}
+.cover__meta {
+  margin: 0 0 32px;
+  font: 500 14px/1.5 var(--sans);
+  opacity: 0.7;
+}
+/* 이어서 / 처음부터 */
+.resume {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  max-width: 24rem;
+  margin-bottom: 8px;
+}
+.resume button {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px transparent;
+}
+.resume button[aria-checked='true'] {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 1.5px #fff;
+}
+.resume small {
+  font: 600 13px/1.4 var(--sans);
+}
+.resume span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 400 12.5px/1.4 var(--sans);
+  opacity: 0.8;
+}
+.cover__by span {
+  opacity: 0.75;
+  font-weight: 400;
+}
+.cover__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  max-width: 24rem;
+}
+.cover .pill {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.cover .pill--primary {
+  background: #fff;
+  color: #191f28;
+}
+.cover__note {
+  margin: 16px 0 0;
+  font: 400 13.5px/1.6 var(--sans);
+  opacity: 0.8;
+}
+.is-reading .cover__actions,
+.is-reading .cover__note {
+  visibility: hidden;
+}
+
+/* ── 본문 ───────────────────────────────────────────── */
+.work-body {
+  padding-top: 18vh;
+  padding-bottom: 20vh;
+  font: 400 calc(15.5px + var(--fs-step, 1) * 1.5px) / 1.95 var(--serif);
+}
+.para {
+  margin: 0 0 1.3em;
+  text-indent: 1em;
+}
+/* 본문은 지면처럼: 글자 사이에서도 줄을 바꾸고 양끝을 맞춘다.
+   (단어째로만 줄을 바꾸면 좁은 화면에서 줄 끝이 들쭉날쭉하고 큰 빈칸이 생긴다) */
+.work-body .para,
+.work-body .stage-desc,
+.work-body .dir,
+.work-body .line__what,
+.afterword .para,
+.footnotes li {
+  word-break: normal;
+  line-break: strict; /* 닫는 문장부호가 줄 맨 앞에 오지 않게 */
+  text-align: justify;
+}
+.cover__title,
+.afterword__title,
+.scene-h,
+.section-h,
+.next-card strong {
+  text-wrap: balance;
+}
+
+/* ── 등장 애니메이션 ─────────────────────────────────
+   .rt : 줄 단위로 아래에서 올라오는 글(lines.js가 줄을 나눈다)
+   .rv : 상자 단위로 떠오르는 요소
+   .media : 왼쪽에서 오른쪽으로 닦이며 열리는 이미지 */
+.rt:not(.is-in),
+.stanza:not(.is-in) {
+  opacity: 0;
+}
+.ln {
+  display: block;
+  overflow: hidden;
+  /* 나눠 둔 한 줄이 글자 사이 간격 차이로 두 줄이 되어 아래 글이 밀리지 않게 */
+  white-space: nowrap;
+  /* 아래로 처지는 글자가 잘리지 않도록 여유 */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  text-indent: 0;
+}
+/* 산문 문단을 나눈 줄만 원래처럼 양끝을 맞춘다(문단의 마지막 줄은 제외).
+   시의 행(.verse)은 행 모양 그대로 왼쪽 정렬 */
+.is-split > .ln:not(:last-child) {
+  text-align-last: justify;
+}
+.ln:first-child {
+  text-indent: inherit;
+}
+.ln-in {
+  display: block;
+  transform: translate3d(0, 105%, 0);
+}
+.is-in .ln-in {
+  transform: none;
+  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--li, 0) * 0.07s);
+}
+.rv {
+  opacity: 0;
+  translate: 0 28px;
+  transition:
+    opacity 0.8s var(--ease),
+    translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--d, 0) * 0.08s);
+}
+.rv.is-in {
+  opacity: 1;
+  translate: 0 0;
+}
+.work-body > .fn-note {
+  opacity: 1;
+}
+
+/* 장면 제목: 글처럼 아래에서 올라온다 */
+.scene-h,
+.section-h {
+  overflow: hidden;
+  padding-bottom: 0.1em;
+}
+.scene-h > .hd,
+.section-h > .hd {
+  display: block;
+  transform: translate3d(0, 105%, 0);
+}
+.scene-h.is-in > .hd,
+.section-h.is-in > .hd {
+  transform: none;
+  transition: transform 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* 본문 사이 이미지: 글보다 넓게(휴대폰에서는 화면 끝까지). 글처럼 아래에서 올라온다 */
+.media {
+  --mw: min(calc(100vw - var(--gutter) * 2), 60rem);
+  position: relative;
+  width: var(--mw);
+  margin: 4rem 0 4rem calc(50% - var(--mw) / 2);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+.media__img {
+  position: absolute;
+  inset: 0;
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+  transform: translate3d(0, 101%, 0);
+}
+.media.is-in .media__img {
+  transform: none;
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (max-width: 640px) {
+  .media {
+    --mw: 100vw;
+    aspect-ratio: 4 / 3;
+    border-radius: 0;
+  }
+}
+
+/* 커버: 처음 열릴 때 위에서부터 차례로 */
+.cover__inner > * {
+  opacity: 0;
+}
+/* 폰트가 준비되고 막이 걷힐 때 위에서부터 차례로 */
+.is-ready .cover__inner > * {
+  opacity: 1;
+  animation: cover-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s both;
+}
+.is-ready .cover__inner > :nth-child(2) {
+  animation-delay: 0.33s;
+}
+.is-ready .cover__inner > :nth-child(3) {
+  animation-delay: 0.41s;
+}
+.is-ready .cover__inner > :nth-child(4) {
+  animation-delay: 0.49s;
+}
+.is-ready .cover__inner > :nth-child(5) {
+  animation-delay: 0.57s;
+}
+.is-ready .cover__inner > :nth-child(n + 6) {
+  animation-delay: 0.65s;
+}
+@keyframes cover-rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+.is-ready .cover__img {
+  animation: cover-in 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes cover-in {
+  from {
+    transform: scale(1.12);
+  }
+}
+
+.scene-break {
+  margin: 3.5rem 0;
+  text-align: center;
+  font-family: var(--sans);
+  color: var(--ink-3);
+}
+
+/* ── 시: 연을 한 단위로, 행은 그대로 ─────────────────────── */
+.work-body--poem {
+  font-size: calc(16.5px + var(--fs-step, 1) * 1.5px);
+  line-height: 2;
+}
+.stanza {
+  margin: 0 0 2.2em;
+}
+.verse {
+  display: block;
+}
+.work-body--poem .media {
+  margin-block: 3.6rem 4rem;
+}
+
+/* ── 희곡 ───────────────────────────────────────────── */
+.cast {
+  padding-top: 16vh;
+}
+.cast__list {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0 0;
+}
+.cast__item {
+  display: grid;
+  grid-template-columns: 6.5em 1fr;
+  gap: 12px;
+}
+.cast__name {
+  margin: 0;
+  font: 700 16px/1.6 var(--sans);
+  color: var(--who);
+}
+.cast__name small {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.cast__desc {
+  margin: 0;
+  font: 400 15px/1.6 var(--sans);
+  color: var(--ink-2);
+}
+[data-who='seoyun'] {
+  --who: #ff9f6e;
+}
+[data-who='jeongho'] {
+  --who: #7fb2ff;
+}
+[data-who='miyoung'] {
+  --who: #c99bff;
+}
+[data-who='minwoo'] {
+  --who: #ffd54d;
+}
+[data-who='dohyeon'] {
+  --who: #5fd3a2;
+}
+.is-morning [data-who='seoyun'] {
+  --who: #d2581f;
+}
+.is-morning [data-who='jeongho'] {
+  --who: #2c62c9;
+}
+.is-morning [data-who='minwoo'] {
+  --who: #a07a00;
+}
+.is-morning [data-who='miyoung'] {
+  --who: #8a4fd0;
+}
+.is-morning [data-who='dohyeon'] {
+  --who: #18865a;
+}
+
+.work-body--play {
+  font-size: calc(15px + var(--fs-step, 1) * 1.5px);
+}
+.scene-h {
+  margin: 16vh 0 1.4rem;
+  font: 700 19px/1.5 var(--sans);
+}
+.scene-h:first-child {
+  margin-top: 0;
+}
+.stage-desc,
+.dir {
+  margin: 0 0 1em;
+  font-style: italic;
+  color: var(--ink-2);
+}
+.dir {
+  padding-left: 1em;
+}
+.line {
+  display: grid;
+  grid-template-columns: 3.4em 1fr;
+  margin: 0 0 0.7em;
+}
+.line__who {
+  font: 700 0.86em/2.25 var(--sans);
+  color: var(--who);
+}
+.line__sep {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+[data-past] {
+  color: color-mix(in srgb, var(--ink) 72%, #d9a75c);
+}
+.play-end {
+  margin: 4rem 0 0;
+  text-align: center;
+  font: 700 18px/1.5 var(--sans);
+}
+
+/* 전구: 상단 바 바로 아래, 천장에 박힌 반원 */
+.bulb {
+  position: fixed;
+  top: var(--topbar-h, 75px);
+  left: 50%;
+  z-index: 26;
+  width: 48px;
+  transition:
+    background-color 0.15s,
+    box-shadow 0.4s;
+  height: 24px;
+  translate: -50% 0;
+  border-radius: 0 0 24px 24px;
+  background: var(--fill-2);
+  pointer-events: none;
+  visibility: hidden;
+}
+.is-reading .bulb {
+  visibility: visible;
+}
+.bulb-on .bulb {
+  background: #ffe2a6;
+  /* 빛 번짐은 전구가 켜져 있다는 신호라 남긴다 */
+  box-shadow:
+    0 6px 26px 8px rgba(255, 205, 115, 0.55),
+    0 20px 140px 60px rgba(255, 190, 90, 0.14);
+}
+
+/* 스위치 */
+.switch-cue {
+  min-height: 64vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+}
+.switch {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.switch:disabled {
+  cursor: default;
+}
+.switch__plate {
+  position: relative;
+  display: block;
+  width: 68px;
+  height: 104px;
+  border: 1px solid #cfc6b4;
+  border-radius: 8px;
+  background: #efe9dd;
+}
+.switch__toggle {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  width: 22px;
+  height: 36px;
+  border: 1px solid #c8bea9;
+  border-radius: 4px;
+  translate: -50% 0;
+  background: #fff;
+  transition: top 0.14s ease-in;
+}
+.switch.is-off .switch__toggle {
+  top: 46px;
+}
+.switch:not(:disabled) .switch__plate {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 6px;
+  animation: beckon 1.6s ease-in-out infinite;
+}
+@keyframes beckon {
+  50% {
+    outline-offset: 12px;
+    outline-color: transparent;
+  }
+}
+.switch-cue__hint {
+  margin: 0;
+  font: 600 15px/1.5 var(--sans);
+  color: var(--ink-2);
+}
+.play-locked [data-locked],
+.play-locked .afterword,
+.play-locked .work-nav {
+  display: none;
+}
+
+/* ── 평론 ───────────────────────────────────────────── */
+.section-h {
+  margin: 16vh 0 1.6rem;
+  font: 700 clamp(21px, 5vw, 26px) / 1.45 var(--sans);
+}
+.section-h:first-child {
+  margin-top: 0;
+}
+.para--quote {
+  margin: 1.6em 0;
+  padding-left: 1.5em;
+  text-indent: 0;
+  color: var(--ink-2);
+}
+.fn-ref {
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: 700 0.8em/1 var(--sans);
+  vertical-align: 0.4em;
+  cursor: pointer;
+}
+.fn-note {
+  margin: -0.3em 0 1.6em;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--fill);
+  font: 400 14px/1.7 var(--sans);
+  color: var(--ink-2);
+}
+.fn-note b {
+  margin-right: 4px;
+  color: var(--ink);
+}
+.footnotes {
+  padding-bottom: 6vh;
+  font: 400 13.5px/1.75 var(--sans);
+  color: var(--ink-3);
+}
+.footnotes ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+/* ── 수상소감·심사평 ─────────────────────────────────── */
+.afterword {
+  padding-top: 10vh;
+  padding-bottom: 4vh;
+  font: 400 calc(14.5px + var(--fs-step, 1) * 1.5px) / 1.9 var(--serif);
+}
+.afterword + .afterword {
+  margin-top: 6vh;
+}
+.afterword__title {
+  margin: 0 0 1.6rem;
+  font: 700 clamp(24px, 6vw, 30px) / 1.4 var(--sans);
+}
+.afterword__sign {
+  margin: 1.6rem 0 0;
+  text-align: right;
+  font: 500 15px/1.6 var(--sans);
+  color: var(--ink-2);
+}
+
+/* ── 하단 ───────────────────────────────────────────── */
+.work-nav {
+  padding-top: 12vh;
+  padding-bottom: 40px;
+}
+.work-nav ul {
+  list-style: none;
+  margin: 12px 0 10vh;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.work-nav li a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+}
+.work-nav li a:hover strong {
+  text-decoration: underline;
+}
+.work-nav__thumb {
+  flex: none;
+  width: 56px;
+  height: 76px;
+  border-radius: 4px;
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+}
+.work-nav li a > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+.work-nav small {
+  font: 600 13px/1.4 var(--sans);
+  color: var(--ink-3);
+}
+.work-nav strong {
+  font: 700 17px/1.4 var(--sans);
+  transition: color 0.2s;
+}
+.work-nav em {
+  font: 400 14px/1.4 var(--sans);
+  font-style: normal;
+  color: var(--ink-2);
+}
+.site-foot {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+  font: 400 13px/1.7 var(--sans);
+  color: var(--ink-3);
+}
+.site-foot__logo {
+  color: var(--ink);
+}
+.site-foot p {
+  margin: 0;
+}
+
+
+/* 썸네일 자리(이미지가 없을 때 작품 색) */
+.is-placeholder[data-media^='poem'] {
+  background-color: #22365a;
+}
+.is-placeholder[data-media^='novel'] {
+  background-color: #f3d4dc;
+}
+.is-placeholder[data-media^='play'] {
+  background-color: #3a2d1d;
+}
+.is-placeholder[data-media^='crit'] {
+  background-color: #d6d6d2;
+}
+
+/* ── 효과 ───────────────────────────────────────────── */
+.fx-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.fx-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+}
+.fx-veil.is-flash {
+  background: #fff;
+}
+.fx-veil.is-blackout {
+  background: #000;
+}
+.fx-veil.is-flash.is-on {
+  animation: flash 0.5s ease-out;
+}
+.fx-veil.is-blackout.is-on {
+  animation: blackout 1.6s ease-in-out;
+}
+@keyframes flash {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes blackout {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── 평론 장면 ─────────────────────────────────────── */
+.cscene:not(.is-current) {
+  display: none;
+}
+[data-work='critique']:not(.is-last-scene) .footnotes,
+[data-work='critique']:not(.is-last-scene) .afterword,
+[data-work='critique']:not(.is-last-scene) .work-nav {
+  display: none;
+}
+.scene-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12vh;
+}
+.scene-nav__btn {
+  display: grid;
+  gap: 4px;
+  max-width: 48%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--fill);
+  text-align: left;
+  cursor: pointer;
+}
+.scene-nav__btn--next {
+  margin-left: auto;
+  text-align: right;
+}
+.scene-nav__btn small {
+  font: 500 13px/1.4 var(--sans);
+  color: var(--ink-3);
+}
+.scene-nav__btn span {
+  font: 700 16px/1.4 var(--sans);
+}
+.scene-ctrl {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 28;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  translate: -50% 0;
+  visibility: hidden;
+}
+.is-reading .scene-ctrl {
+  visibility: visible;
+}
+.scene-ctrl .circle {
+  background: transparent;
+  color: var(--bg);
+}
+.scene-ctrl .circle:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.scene-ctrl__count {
+  min-width: 3.4em;
+  text-align: center;
+  font: 600 14px/1 var(--sans);
+}
+
+/* ── 메인으로 돌아갈 때 ─────────────────────────────── */
+.is-collapsing .topbar,
+.is-collapsing .bulb,
+.is-collapsing .scene-ctrl,
+.is-collapsing .fx-canvas,
+.is-collapsing .toast {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.collapse-thumb {
+  position: fixed;
+  z-index: 100;
+  border-radius: var(--radius);
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+}
+
+/* 다음 작품 카드 */
+.next-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 8vh;
+  overflow: hidden;
+  border-radius: var(--radius);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.5s cubic-bezier(0.34, 1.6, 0.5, 1);
+}
+.next-card:hover {
+  transform: scale(1.015);
+}
+.next-card:active {
+  transform: scale(0.97);
+  transition-duration: 0.12s;
+}
+.next-card__img {
+  position: absolute;
+  inset: 0;
+  background-color: var(--ph);
+  background-size: cover;
+  background-position: center;
+}
+.next-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+}
+.next-card__text {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  padding: 22px;
+}
+.next-card small {
+  font: 600 13px/1.4 var(--sans);
+  opacity: 0.85;
+}
+.next-card strong {
+  font: 700 clamp(22px, 5vw, 28px) / 1.3 var(--sans);
+}
+.next-card em {
+  font: 400 14px/1.4 var(--sans);
+  font-style: normal;
+  opacity: 0.85;
+}
