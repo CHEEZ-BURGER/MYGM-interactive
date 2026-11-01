@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+.claude/
+# 작업용 원본(사이트에는 쓰이지 않음)
+2051호_문예공모/
+media-src/
