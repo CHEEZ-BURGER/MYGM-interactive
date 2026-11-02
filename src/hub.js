@@ -2,8 +2,9 @@ import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import './styles/base.css';
 import './styles/hub.css';
 import { SITE, WORKS, esc, logoHTML } from './lib/site.js';
-import { fillMedia } from './lib/stage.js';
+import { fillMedia, resolveImage } from './lib/stage.js';
 import { initTransitions } from './lib/transition.js';
+import { smoothCorners } from './lib/squircle.js';
 import { preloadFonts } from './lib/fonts.js';
 import { getProgress } from './lib/progress.js';
 import { bindUiSounds, soundAllowed, ui, unlock } from './lib/synth.js';
@@ -12,6 +13,15 @@ const root = document.getElementById('hub');
 const n = WORKS.length;
 const COPIES = 4; // 네 작품을 이어 붙여 끝없이 흐르는 띠를 만든다
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// 휴대폰: 옆으로 넘기는 카드 띠 대신, 위에서 아래로 내려 읽는 목록
+const feedMQ = matchMedia('(max-width: 720px)');
+const decodeImage = (url) => {
+  const im = new Image();
+  im.src = url;
+  return im.decode().catch(() => {});
+};
+const LEDE =
+  '창간 79주년을 맞아 열린 고대신문 문예공모에 여러 대학의 학생들이 시 214편, 소설 25편, 희곡 10편, 문예평론 9편을 보내왔습니다. 네 부문에서 한 편씩 뽑힌 당선작을 지면에 실린 그대로, 그림과 소리와 함께 읽어 보세요.';
 
 // 읽은 진도: 3% 미만은 표시하지 않고, 97% 이상은 다 읽은 것으로 본다
 function progressOf(w) {
@@ -57,7 +67,7 @@ root.innerHTML = `
         공모 소개<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div class="hub-lede" id="hub-lede">
-        <p>창간 79주년을 맞아 열린 고대신문 문예공모에 여러 대학의 학생들이 시 214편, 소설 25편, 희곡 10편, 문예평론 9편을 보내왔습니다. 네 부문에서 한 편씩 뽑힌 당선작을 지면에 실린 그대로, 그림과 소리와 함께 읽어 보세요.</p>
+        <p>${LEDE}</p>
       </div>
     </header>
     <section class="strip" aria-label="당선작">
@@ -78,6 +88,39 @@ root.innerHTML = `
     </div>
   </main>
 
+  <section class="feed" aria-label="당선작">
+    <div class="feed-hero">
+      <span class="feed-hero__img" data-media="hub-cover" aria-hidden="true"></span>
+      <div class="feed-hero__text">
+        <p class="feed-hero__kicker">고대신문 창간 79주년 기념</p>
+        <h2 class="feed-hero__title">문예공모<br />당선작</h2>
+        <button type="button" class="hub-about" aria-expanded="false" aria-controls="feed-lede">
+          공모 소개<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="hub-lede" id="feed-lede"><p>${LEDE}</p></div>
+      </div>
+      <button type="button" class="feed-hero__cue" aria-label="당선작 보기">
+        <span>당선작 ${n}편</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+    <ol class="feed-list">
+      ${WORKS.map((w, k) => {
+        const pr = progressOf(w);
+        return `<li class="feed-item" data-k="${k}">
+          <a href="${w.id}.html" class="feed-item__link">
+            <span class="feed-item__img" data-media="${w.cover}">${pr.pct ? `<span class="feed-item__progress" style="--pp:${pr.pct}"></span>` : ''}</span>
+            <span class="feed-item__body">
+              <span class="feed-item__meta">${String(k + 1).padStart(2, '0')} · ${w.genre}</span>
+              <strong class="feed-item__title">${esc(w.title)}</strong>
+              <span class="feed-item__by">${esc(w.author)}<br />${esc(w.affiliation)}</span>
+              <span class="feed-item__go">${pr.pct === 1 ? '다시 읽기' : pr.pct ? '이어 읽기' : '읽기'} · ${pr.pct && pr.pct < 1 ? pr.label : `약 ${w.minutes}분`}</span>
+            </span>
+          </a>
+        </li>`;
+      }).join('')}
+    </ol>
+  </section>
+
   <footer class="hub-foot">
     ${logoHTML('emblem', 'hub-foot__emblem')}
     <p>${SITE.fullName} · ${SITE.issue} · 이미지와 음악은 AI로 만들었어요.</p>
@@ -87,6 +130,7 @@ fillMedia(root);
 const ready = preloadFonts({ sans: root.textContent });
 initTransitions({ ready });
 bindUiSounds();
+smoothCorners(root);
 
 // 효과음 켜고 끄기(작품 페이지의 소리 설정과 같은 값을 쓴다)
 const ICON_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" class="f"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
@@ -127,7 +171,7 @@ function labelEl(title, cls = 'slot__text') {
   const el = document.createElement('span');
   el.className = cls;
   el.innerHTML = '<span class="slot__title"></span><span class="slot__verb">읽기</span>';
-  el.firstChild.textContent = `〈${title}〉`;
+  el.firstChild.textContent = `‘${title}’`;
   return el;
 }
 function setLabel(title) {
@@ -168,6 +212,7 @@ try {
 } catch {
   /* */
 }
+const backK = ((Math.round(ratio) % n) + n) % n; // 방금 읽고 돌아온 작품
 
 const wrap = (v, m) => ((((v + m / 2) % m) + m) % m) - m / 2;
 
@@ -178,6 +223,7 @@ function measure() {
   step = w + gap;
   x = tx = ratio * step;
   render();
+  if (feedMQ.matches) return; // 휴대폰 목록에서는 누른 작품의 사진 자리를 따로 남긴다
   // 작품 화면에서 돌아올 때 이 자리로 줄어들 수 있게 가운데 카드 자리를 남긴다
   const r = track.getBoundingClientRect();
   try {
@@ -299,21 +345,22 @@ cards.forEach((c, k) =>
   }),
 );
 addEventListener('keydown', (e) => {
-  if (!root.querySelector('.list').hidden) return;
+  if (!root.querySelector('.list').hidden || feedMQ.matches) return;
   if (e.key === 'ArrowRight') go(1);
   if (e.key === 'ArrowLeft') go(-1);
 });
 addEventListener('resize', measure);
 
 // 공모 소개 펼치기·접기. 펼쳐지는 동안 카드가 움직이므로, 끝나면 카드 위치를 다시 잰다
-const aboutBtn = root.querySelector('.hub-about');
-const lede = root.querySelector('.hub-lede');
-aboutBtn.addEventListener('click', () => {
-  const open = aboutBtn.getAttribute('aria-expanded') !== 'true';
-  aboutBtn.setAttribute('aria-expanded', String(open));
-  lede.classList.toggle('is-open', open);
+root.querySelectorAll('.hub-about').forEach((btn) => {
+  const lede = root.querySelector(`#${btn.getAttribute('aria-controls')}`);
+  btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') !== 'true';
+    btn.setAttribute('aria-expanded', String(open));
+    lede.classList.toggle('is-open', open);
+  });
+  lede.addEventListener('transitionend', (e) => e.propertyName === 'grid-template-rows' && measure());
 });
-lede.addEventListener('transitionend', (e) => e.propertyName === 'grid-template-rows' && measure());
 
 // 카드 ↔ 목록 보기
 const viewBtn = root.querySelector('[data-view]');
@@ -348,7 +395,11 @@ if (fromBack) {
     requestAnimationFrame(() => requestAnimationFrame(run));
     setTimeout(run, 80);
   };
-  ready.then(() => nextFrame(() => root.classList.add('is-back-in')));
+  // 돌아온 작품의 사진을 받은 뒤에 시작(늦어도 0.4초 안에)
+  const coverReady = feedMQ.matches
+    ? Promise.race([resolveImage(WORKS[backK].cover).then((u) => u && decodeImage(u)), new Promise((r) => setTimeout(r, 400))])
+    : Promise.resolve();
+  Promise.all([ready, coverReady]).then(() => nextFrame(() => root.classList.add('is-back-in')));
 } else if (!reduceMotion) {
   track.classList.add('is-intro');
   cards.forEach((c, k) => {
@@ -364,3 +415,84 @@ if (fromBack) {
     setTimeout(() => cards.forEach((c) => c.querySelector('.poster__link').style.removeProperty('--intro')), 1700);
   });
 }
+
+// ── 휴대폰: 내려 읽는 목록 ─────────────────────────────────
+const feed = root.querySelector('.feed');
+const feedItems = [...feed.querySelectorAll('.feed-item')];
+const heroImg = feed.querySelector('.feed-hero__img');
+const heroText = feed.querySelector('.feed-hero__text');
+
+// 누른 작품의 사진 자리와 스크롤 위치를 남긴다(돌아올 때 그 자리로 줄어들고, 같은 곳에서 다시 시작)
+feedItems.forEach((li) =>
+  li.querySelector('a').addEventListener('click', () => {
+    const r = li.querySelector('.feed-item__img').getBoundingClientRect();
+    try {
+      sessionStorage.setItem('mungye:slot', JSON.stringify({ left: r.left, top: r.top, width: r.width, height: r.height, vw: innerWidth, vh: innerHeight }));
+      sessionStorage.setItem('mungye:feed-y', String(scrollY));
+    } catch {
+      /* */
+    }
+  }),
+);
+feed.querySelector('.feed-hero__cue').addEventListener('click', () =>
+  feedItems[0].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' }),
+);
+
+// 목록이 화면에 들어오면 아래에서 올라온다
+const feedIO = new IntersectionObserver(
+  (entries) =>
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      en.target.classList.add('is-in');
+      feedIO.unobserve(en.target);
+    }),
+  { rootMargin: '0px 0px -12% 0px' },
+);
+
+// 위로 올리면 표지 사진은 천천히 밀려 올라가며 어두워진다
+let heroQueued = false;
+function paintHero() {
+  heroQueued = false;
+  if (!feedMQ.matches) return;
+  const h = heroImg.parentElement.offsetHeight || 1;
+  const p = Math.min(1, Math.max(0, scrollY / h));
+  heroImg.style.transform = `translate3d(0, ${(scrollY * 0.35).toFixed(1)}px, 0) scale(${(1 + p * 0.06).toFixed(3)})`;
+  heroImg.style.opacity = (1 - p * 0.7).toFixed(3);
+  heroText.style.transform = `translate3d(0, ${(scrollY * -0.12).toFixed(1)}px, 0)`;
+}
+addEventListener('scroll', () => !heroQueued && ((heroQueued = true), requestAnimationFrame(paintHero)), { passive: true });
+
+function setupFeed() {
+  root.classList.toggle('is-feed', feedMQ.matches);
+  if (!feedMQ.matches) return;
+  paintHero();
+  feedItems.forEach((li) => (reduceMotion ? li.classList.add('is-in') : feedIO.observe(li)));
+}
+feedMQ.addEventListener('change', () => {
+  setupFeed();
+  measure();
+});
+if (feedMQ.matches && fromBack) {
+  // 작품에서 돌아왔으면 나가기 전의 스크롤 자리로, 그 작품의 사진은 처음부터 보이게
+  history.scrollRestoration = 'manual';
+  let y = 0;
+  try {
+    y = Number(sessionStorage.getItem('mungye:feed-y')) || 0;
+  } catch {
+    /* */
+  }
+  scrollTo(0, y);
+  const k = backK;
+  // 나머지 작품은 돌아온 작품을 기준으로 위의 것은 위에서, 아래 것은 아래에서 들어온다
+  feedItems.forEach((li, j) => {
+    li.classList.add('is-in');
+    li.style.setProperty('--dir', j < k ? -1 : 1);
+    li.style.setProperty('--dd', Math.abs(j - k));
+  });
+  const act = feedItems[k];
+  act?.classList.add('is-active');
+  // 돌아온 작품의 사진은 첫 화면부터 그려 둔다(줄어든 화면과 바로 이어지게)
+  const img = act?.querySelector('.feed-item__img');
+  if (img) img.style.backgroundImage = `url("media/img/${img.dataset.media}.webp")`;
+}
+setupFeed();

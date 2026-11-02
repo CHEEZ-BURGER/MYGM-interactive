@@ -10,6 +10,7 @@ import { createFx } from './lib/fx.js';
 import { WORKS, esc } from './lib/site.js';
 import { fadeEverything, isEnabled, playSfx, preloadSfx, setEnabled, setTrack } from './lib/audio.js';
 import { initTransitions } from './lib/transition.js';
+import { smoothCorners } from './lib/squircle.js';
 import { ambience, bindUiSounds, fadeUi, ui } from './lib/synth.js';
 import { preloadFonts } from './lib/fonts.js';
 import { getProgress, setProgress } from './lib/progress.js';
@@ -102,6 +103,8 @@ document.body.insertAdjacentHTML(
    </div>
    <div class="toast" role="status" aria-live="polite"></div>`,
 );
+
+smoothCorners();
 
 // 상단 바 높이(전구가 바로 아래에 붙는다)
 const setTopbarH = () => document.documentElement.style.setProperty('--topbar-h', `${document.querySelector('.topbar').offsetHeight}px`);
@@ -588,7 +591,8 @@ document.fonts?.ready.then(() => ScrollTrigger.refresh());
 function hubSlot() {
   try {
     const r = JSON.parse(sessionStorage.getItem('mungye:slot'));
-    if (r && r.vw === innerWidth && r.vh === innerHeight) return r;
+    // 휴대폰은 주소창이 접히고 펴지며 높이만 바뀌므로, 폭이 같으면 저장된 자리를 쓴다
+    if (r && r.vw === innerWidth) return r;
   } catch {
     /* */
   }
