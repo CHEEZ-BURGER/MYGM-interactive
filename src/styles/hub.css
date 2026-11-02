@@ -85,12 +85,82 @@
 .hub-head .logo--wordmark {
   height: 24px;
 }
-.hub-title {
-  margin: 0;
+.hub-intro {
+  max-width: 34rem;
+  margin: 0 auto;
   padding: 0 var(--gutter);
   text-align: center;
-  font: 600 15px/1.5 var(--sans);
+}
+.hub-title {
+  margin: 0;
+  font: 700 17px/1.5 var(--sans);
+  color: var(--ink);
+}
+/* 공모 소개 버튼: 누르면 아래로 소개 글이 펼쳐진다 */
+.hub-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 6px 6px 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-3);
+  font: 600 13px/1 var(--sans);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+.hub-about:hover,
+.hub-about[aria-expanded='true'] {
   color: var(--ink-2);
+}
+.hub-about:active {
+  transform: scale(0.92);
+  transition-duration: 0.12s;
+}
+.hub-about svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate 0.4s var(--ease);
+}
+.hub-about[aria-expanded='true'] svg {
+  rotate: 180deg;
+}
+/* 문예공모 소개: 응모 규모는 각 부문 심사평에 적힌 숫자 그대로 */
+.hub-lede {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s var(--ease);
+}
+.hub-lede > p {
+  min-height: 0;
+  overflow: hidden;
+  margin: 0;
+  font: 400 14px/1.65 var(--sans);
+  color: var(--ink-2);
+  text-wrap: balance;
+  opacity: 0;
+  translate: 0 -6px;
+  transition:
+    opacity 0.3s,
+    translate 0.5s var(--ease);
+}
+.hub-lede.is-open {
+  grid-template-rows: 1fr;
+}
+.hub-lede.is-open > p {
+  padding-top: 4px;
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 0.1s;
 }
 @media (max-width: 560px) {
   .hub-head {
@@ -100,7 +170,10 @@
     height: 17px;
   }
   .hub-title {
-    font-size: 14px;
+    font-size: 16px;
+  }
+  .hub-lede > p {
+    font-size: 13px;
   }
 }
 
@@ -116,7 +189,8 @@
 .strip {
   --gap: 18px;
   --cw: min(68vw, max(240px, min(21vw, 300px)));
-  --ch: min(calc(var(--cw) * 1.42), calc(100svh - 300px));
+  /* 위쪽 소개 글과 아래 버튼이 들어갈 자리를 빼고 남는 높이까지 */
+  --ch: min(calc(var(--cw) * 1.42), calc(100svh - 380px));
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -226,8 +300,7 @@
   background: #fff;
 }
 .poster__title {
-  font: 700;
-  font-size: 16px;
+  font: 700 clamp(26px, calc(var(--cw) * 0.11), 34px) / 1.25 var(--sans);
 }
 .poster__by {
   margin-top: 6px;
@@ -248,13 +321,13 @@
 /* 작품 화면에서 돌아왔을 때: 가운데 카드는 그대로 두고,
    로고·제목은 위에서 내려오고 버튼·바닥글은 아래에서 올라오며, 옆 카드는 서서히 */
 #hub.is-back .hub-head,
-#hub.is-back .hub-title,
+#hub.is-back .hub-intro,
 #hub.is-back .hub-actions,
 #hub.is-back .hub-foot {
   animation: none !important;
 }
 #hub.is-back .hub-head,
-#hub.is-back .hub-title {
+#hub.is-back .hub-intro {
   opacity: 0;
   translate: 0 -36px;
 }
@@ -270,7 +343,7 @@
   opacity: 0;
 }
 #hub.is-back-in .hub-head,
-#hub.is-back-in .hub-title,
+#hub.is-back-in .hub-intro,
 #hub.is-back-in .hub-actions,
 #hub.is-back-in .hub-foot {
   opacity: 1;
@@ -279,7 +352,7 @@
     opacity 0.6s var(--ease),
     translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-#hub.is-back-in .hub-title,
+#hub.is-back-in .hub-intro,
 #hub.is-back-in .hub-actions {
   transition-delay: 0.08s;
 }
@@ -422,19 +495,19 @@
 
 /* 머리·버튼·바닥글이 차례로 떠오른다 */
 .hub-head,
-.hub-title,
+.hub-intro,
 .hub-actions,
 .hub-foot {
   opacity: 0;
 }
 .is-ready .hub-head,
-.is-ready .hub-title,
+.is-ready .hub-intro,
 .is-ready .hub-actions,
 .is-ready .hub-foot {
   opacity: 1;
   animation: hub-rise 0.9s var(--ease) both;
 }
-.is-ready .hub-title {
+.is-ready .hub-intro {
   animation-delay: 0.15s;
 }
 .hub-head {

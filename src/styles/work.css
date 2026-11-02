@@ -974,6 +974,21 @@ html {
 .is-reading .scene-ctrl {
   visibility: visible;
 }
+.scene-ctrl {
+  transition:
+    translate 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.3s;
+}
+/* 페이지 끝에 닿으면 화면 아래로 비켜 '처음으로' 버튼을 가리지 않는다 */
+.scene-ctrl.is-away {
+  translate: -50% calc(100% + 32px);
+  opacity: 0;
+  pointer-events: none;
+}
+/* 평론은 화면 아래에 장 넘기기 버튼이 떠 있으므로 마지막 내용 아래에 여유를 둔다 */
+[data-work='critique'] .work-nav {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
 .scene-ctrl .circle {
   background: transparent;
   color: var(--bg);
