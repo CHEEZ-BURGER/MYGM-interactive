@@ -1,0 +1,215 @@
+/* 낭독 미리 듣기(검토용) */
+[data-page='listen'] {
+  --bg: #0c0d10;
+  --ink: #f2f4f6;
+  --ink-2: #b0b8c1;
+  --ink-3: #6b7684;
+  --fill: #1a1c21;
+  --fill-2: #24272d;
+  --line: #24272d;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.lh,
+.lw,
+.lf {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.lh {
+  padding-top: 56px;
+  padding-bottom: 24px;
+}
+.lh__kicker {
+  margin: 0 0 8px;
+  font: 600 14px/1.5 var(--sans);
+  color: var(--ink-3);
+}
+.lh__title {
+  margin: 0 0 12px;
+  font: 700 30px/1.3 var(--sans);
+}
+.lh__note {
+  margin: 0;
+  font: 400 15px/1.7 var(--sans);
+  color: var(--ink-2);
+}
+
+.work {
+  padding: 32px 0;
+  border-top: 1px solid var(--line);
+}
+.work__genre {
+  margin: 0 0 4px;
+  font: 600 14px/1.5 var(--sans);
+  color: var(--ink-3);
+}
+.work__title {
+  margin: 0;
+  font: 700 24px/1.35 var(--sans);
+}
+.work__by {
+  margin: 4px 0 20px;
+  font: 400 15px/1.5 var(--sans);
+  color: var(--ink-2);
+}
+.work__status {
+  margin: 0 0 16px;
+  font: 400 15px/1.6 var(--sans);
+  color: var(--ink-2);
+}
+.work__full .pill {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.work__full .pill svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.work__label {
+  margin: 0 0 8px;
+  font: 600 14px/1.5 var(--sans);
+  color: var(--ink-3);
+}
+.sample {
+  margin: 0 0 12px;
+}
+.sample p {
+  margin: 0 0 6px;
+  font: 400 14px/1.5 var(--sans);
+  color: var(--ink-2);
+}
+.sample audio {
+  display: block;
+  width: 100%;
+  height: 40px;
+  color-scheme: dark;
+}
+
+/* 본문 */
+.reader {
+  margin-top: 28px;
+  padding-bottom: 40px;
+  font: 400 17px/1.9 var(--serif);
+  color: var(--ink);
+  scroll-margin-top: 16px;
+}
+.reader p,
+.reader h3 {
+  margin: 0 0 1em;
+  transition: opacity 0.45s var(--ease);
+}
+.reader .stanza {
+  margin: 0 0 1.6em;
+}
+.reader .ln {
+  display: block;
+  transition: opacity 0.45s var(--ease);
+}
+.reader .r-h {
+  margin-top: 1.6em;
+  font: 700 18px/1.5 var(--sans);
+}
+.reader .r-dir {
+  color: var(--ink-2);
+  font-size: 15.5px;
+}
+.reader .r-line b {
+  margin-right: 0.4em;
+  font: 600 15px/1 var(--sans);
+  color: var(--ink-2);
+}
+.reader .sep {
+  text-align: center;
+  color: var(--ink-3);
+}
+/* 읽는 곳 밝히기 */
+.is-narrating .reader > :not(.stanza),
+.is-narrating .reader .stanza .ln {
+  opacity: 0.38;
+}
+.is-narrating .reader > .is-speaking:not(.stanza),
+.is-narrating .reader .stanza.is-speaking .ln {
+  opacity: 0.7;
+}
+.is-narrating .reader > .is-speaking:not(.stanza),
+.is-narrating .reader .ln.is-spoken {
+  opacity: 1;
+}
+
+.lf {
+  padding-top: 24px;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  font: 400 13px/1.6 var(--sans);
+  color: var(--ink-3);
+}
+
+/* 아래 재생기 */
+.narrator {
+  position: fixed;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100vw - 24px);
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  translate: -50% 0;
+}
+.narrator[hidden] {
+  display: none;
+}
+.narrator button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bg);
+  cursor: pointer;
+}
+.narrator svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.narrator svg .f {
+  fill: currentColor;
+  stroke: none;
+}
+.narrator .narrator__main {
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+  color: var(--ink);
+}
+.narrator .narrator__rate,
+.narrator .narrator__follow {
+  width: auto;
+  min-width: 3.4em;
+  padding: 0 10px;
+  border-radius: 999px;
+  font: 600 14px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.narrator .narrator__follow {
+  background: color-mix(in srgb, var(--bg) 16%, transparent);
+}
+.narrator .narrator__follow[hidden] {
+  display: none;
+}
