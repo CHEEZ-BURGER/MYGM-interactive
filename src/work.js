@@ -489,6 +489,10 @@ if (sceneEls.length) {
      </div>`,
   );
   const ctrl = document.querySelector('.scene-ctrl');
+  // 맨 아래 '처음으로' 버튼이 화면에 들어오면 장 넘기기 버튼을 아래로 내려 겹치지 않게 한다
+  new IntersectionObserver(([en]) => ctrl.classList.toggle('is-away', en.isIntersecting)).observe(
+    app.querySelector('.site-foot [data-back]'),
+  );
   paintSceneCtrl = () => {
     ctrl.querySelector('.scene-ctrl__count').textContent = `${currentScene + 1} / ${sceneEls.length}`;
     ctrl.querySelector('[data-scene-step="-1"]').disabled = currentScene === 0;

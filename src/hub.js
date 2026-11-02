@@ -51,7 +51,15 @@ root.innerHTML = `
   </header>
 
   <main class="hub-main">
-    <h1 class="hub-title"><span>고대신문</span> ${SITE.name} 당선작</h1>
+    <header class="hub-intro">
+      <h1 class="hub-title"><span>고대신문</span> ${SITE.name} 당선작</h1>
+      <button type="button" class="hub-about" aria-expanded="false" aria-controls="hub-lede">
+        공모 소개<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="hub-lede" id="hub-lede">
+        <p>창간 79주년을 맞아 열린 고대신문 문예공모에 여러 대학의 학생들이 시 214편, 소설 25편, 희곡 10편, 문예평론 9편을 보내왔습니다. 네 부문에서 한 편씩 뽑힌 당선작을 지면에 실린 그대로, 그림과 소리와 함께 읽어 보세요.</p>
+      </div>
+    </header>
     <section class="strip" aria-label="당선작">
       <ul class="strip__track">${Array.from({ length: COPIES }, (_, c) => WORKS.map((w) => card(w, c > 0)).join('')).join('')}</ul>
     </section>
@@ -296,6 +304,16 @@ addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') go(-1);
 });
 addEventListener('resize', measure);
+
+// 공모 소개 펼치기·접기. 펼쳐지는 동안 카드가 움직이므로, 끝나면 카드 위치를 다시 잰다
+const aboutBtn = root.querySelector('.hub-about');
+const lede = root.querySelector('.hub-lede');
+aboutBtn.addEventListener('click', () => {
+  const open = aboutBtn.getAttribute('aria-expanded') !== 'true';
+  aboutBtn.setAttribute('aria-expanded', String(open));
+  lede.classList.toggle('is-open', open);
+});
+lede.addEventListener('transitionend', (e) => e.propertyName === 'grid-template-rows' && measure());
 
 // 카드 ↔ 목록 보기
 const viewBtn = root.querySelector('[data-view]');
