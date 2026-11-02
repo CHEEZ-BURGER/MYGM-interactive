@@ -10,6 +10,9 @@ const tracks = new Map(); // id -> Looper | null(파일 없음)
 let enabled = false;
 let currentId = null;
 let level = 1; // 큐가 지정하는 상대 볼륨(수상소감 구간에서 낮아짐)
+let duck = 1; // 낭독 중에는 배경음악을 낮춘다
+const DUCK = 0.35;
+const faders = new Set(); // 페이지를 떠날 때 함께 줄일 다른 소리(낭독)
 
 export function savedPreference() {
   try {
@@ -47,7 +50,21 @@ function fadeOut(loop) {
 
 function fadeIn(loop) {
   // 멈춰 있던 곡은 무음에서, 줄어들던 곡은 지금 음량에서 서서히 올린다
-  if (loop) loop.fadeTo(level * BGM_GAIN, FADE_MS);
+  if (loop) loop.fadeTo(level * BGM_GAIN * duck, FADE_MS);
+}
+
+/** 낭독이 시작·멈출 때 배경음악을 낮췄다 되돌린다 */
+export function setDuck(on) {
+  const v = on ? DUCK : 1;
+  if (v === duck) return;
+  duck = v;
+  const loop = currentId && enabled ? tracks.get(currentId) : null;
+  if (loop) loop.fadeTo(level * BGM_GAIN * duck, 900);
+}
+
+/** fadeEverything 때 함께 줄일 소리를 등록한다 */
+export function registerFader(fn) {
+  faders.add(fn);
 }
 
 /** 큐가 바뀔 때 호출. id가 같으면 볼륨만 맞춘다. */
@@ -85,6 +102,7 @@ export function fadeEverything(ms = 500) {
     if (h && h !== 'synth') h._sounds.forEach((s) => !s._paused && h.fade(h.volume(s._id), 0, ms, s._id));
   }
   fadeOutSynth(ms);
+  faders.forEach((fn) => fn(ms));
 }
 
 export const isEnabled = () => enabled;
