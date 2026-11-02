@@ -13,7 +13,6 @@ export default defineConfig({
         novel: resolve(import.meta.dirname, 'novel.html'),
         play: resolve(import.meta.dirname, 'play.html'),
         critique: resolve(import.meta.dirname, 'critique.html'),
-        listen: resolve(import.meta.dirname, 'listen.html'),
       },
     },
   },
