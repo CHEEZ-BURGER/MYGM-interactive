@@ -525,3 +525,270 @@
     translate: 0 24px;
   }
 }
+
+/* ── 휴대폰: 내려 읽는 목록 ──────────────────────────────
+   표지(문틈으로 새는 빛) 위에 제목, 아래로 내리면 작품이 한 편씩 올라온다 */
+.feed {
+  display: none;
+}
+@media (max-width: 720px) {
+  .hub-bg,
+  .hub-main {
+    display: none;
+  }
+  .feed {
+    display: block;
+  }
+  /* 머리는 표지 위에 얹는다(목록 보기 버튼은 필요 없다) */
+  #hub > .hub-head {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
+  }
+  .hub-head__start {
+    visibility: hidden;
+  }
+
+  .feed-hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 86svh;
+    padding: 96px var(--gutter) 88px;
+    overflow: hidden;
+  }
+  .feed-hero__img {
+    position: absolute;
+    inset: 0;
+    background-color: var(--bg);
+    background-size: cover;
+    background-position: 58% center;
+    will-change: transform, opacity;
+  }
+  /* 아래로 갈수록 바탕색에 녹아든다(글자가 읽히도록) */
+  .feed-hero__img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(12, 13, 16, 0.35) 0%, rgba(12, 13, 16, 0.1) 30%, rgba(12, 13, 16, 0.75) 68%, var(--bg) 100%);
+  }
+  .feed-hero__text {
+    position: relative;
+    z-index: 1;
+    will-change: transform;
+  }
+  .feed-hero__kicker {
+    margin: 0 0 10px;
+    font: 500 16px/1.4 var(--sans);
+    color: var(--ink-2);
+  }
+  .feed-hero__title {
+    margin: 0 0 14px;
+    font: 700 clamp(44px, 13vw, 56px) / 1.12 var(--sans);
+    color: var(--ink);
+  }
+  .feed-hero .hub-about {
+    margin: 0 0 0 -10px;
+  }
+  .feed-hero .hub-lede > p {
+    max-width: 30em;
+    font-size: 14px;
+    text-wrap: pretty;
+  }
+  .feed-hero__cue {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 12px;
+    border: 0;
+    background: none;
+    color: var(--ink-3);
+    font: 500 13px/1 var(--sans);
+    translate: -50% 0;
+    cursor: pointer;
+  }
+  .feed-hero__cue svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: feed-cue 1.8s ease-in-out infinite;
+  }
+  @keyframes feed-cue {
+    50% {
+      translate: 0 4px;
+    }
+  }
+
+  /* 작품 목록: 왼쪽 사진, 오른쪽 글 */
+  .feed-list {
+    display: grid;
+    gap: 44px;
+    margin: 0;
+    padding: 16px var(--gutter) 72px;
+    list-style: none;
+  }
+  .feed-item__link {
+    display: grid;
+    grid-template-columns: minmax(0, 46%) minmax(0, 1fr);
+    align-items: center;
+    gap: 18px;
+    color: var(--ink);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .feed-item__img {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border: 0.5px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius);
+    background-color: var(--ph);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1);
+  }
+  .feed-item__img.is-placeholder[data-media^='poem'] {
+    background-color: #22365a;
+  }
+  .feed-item__img.is-placeholder[data-media^='novel'] {
+    background-color: #d9768f;
+  }
+  .feed-item__img.is-placeholder[data-media^='play'] {
+    background-color: #6e4c25;
+  }
+  .feed-item__img.is-placeholder[data-media^='crit'] {
+    background-color: #5b5e63;
+  }
+  .feed-item__link:active .feed-item__img {
+    transform: scale(0.96);
+    transition-duration: 0.12s;
+    transition-timing-function: ease-out;
+  }
+  .feed-item__progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: calc(var(--pp) * 100%);
+    height: 3px;
+    background: #fff;
+  }
+  .feed-item__body {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+  .feed-item__meta {
+    font: 600 13px/1.4 var(--sans);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .feed-item__title {
+    font: 700 22px/1.3 var(--sans);
+    word-break: keep-all;
+  }
+  .feed-item__by {
+    font: 400 13.5px/1.5 var(--sans);
+    color: var(--ink-2);
+  }
+  .feed-item__go {
+    justify-self: start;
+    margin-top: 8px;
+    padding: 8px 14px;
+    --sq: 11px;
+    border-radius: var(--sq);
+    background: var(--fill);
+    font: 600 13.5px/1 var(--sans);
+    color: var(--ink);
+  }
+
+  /* 화면에 들어올 때: 사진은 아래에서 위로 열리고, 글은 조금 늦게 올라온다 */
+  .feed-item:not(.is-in) .feed-item__img {
+    clip-path: inset(100% 0 0 0 round var(--radius));
+  }
+  .feed-item:not(.is-in) .feed-item__body {
+    opacity: 0;
+    translate: 0 24px;
+  }
+  .feed-item.is-in .feed-item__img {
+    clip-path: inset(0 0 0 0 round var(--radius));
+    transition:
+      clip-path 0.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 0.5s cubic-bezier(0.34, 1.8, 0.5, 1);
+  }
+  .feed-item.is-in .feed-item__body {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.7s var(--ease) 0.15s,
+      translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s;
+  }
+
+  /* 첫 등장: 표지 글이 차례로 떠오른다 */
+  .feed-hero__text > *,
+  .feed-hero__cue {
+    opacity: 0;
+  }
+  .is-ready .feed-hero__text > *,
+  .is-ready .feed-hero__cue {
+    opacity: 1;
+    animation: hub-rise 0.9s var(--ease) both;
+  }
+  .is-ready .feed-hero__title {
+    animation-delay: 0.1s;
+  }
+  .is-ready .feed-hero .hub-about,
+  .is-ready .feed-hero .hub-lede {
+    animation-delay: 0.2s;
+  }
+  .is-ready .feed-hero__cue {
+    animation-delay: 0.5s;
+  }
+
+  /* 작품에서 돌아왔을 때: 줄어든 화면이 그 작품의 사진 자리에 내려앉고,
+     둘레의 요소가 제자리를 향해 들어온다. 위의 것은 위에서, 아래 것은 아래에서,
+     그 작품의 글은 사진 옆으로 미끄러져 나온다 */
+  #hub.is-back .feed-hero__text > *,
+  #hub.is-back .feed-hero__cue {
+    animation: none;
+  }
+  #hub.is-back .feed-hero {
+    opacity: 0;
+    translate: 0 -48px;
+  }
+  #hub.is-back .feed-item:not(.is-active) {
+    opacity: 0;
+    translate: 0 calc(var(--dir, 1) * 56px);
+  }
+  #hub.is-back .feed-item.is-active .feed-item__body {
+    opacity: 0;
+    translate: 24px 0;
+  }
+  #hub.is-back-in .feed-hero,
+  #hub.is-back-in .feed-item:not(.is-active),
+  #hub.is-back-in .feed-item.is-active .feed-item__body {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 0.6s var(--ease),
+      translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  #hub.is-back-in .feed-item.is-active .feed-item__body {
+    transition-delay: 0.05s;
+  }
+  #hub.is-back-in .feed-item:not(.is-active) {
+    transition-delay: calc(0.08s + var(--dd, 1) * 0.07s);
+  }
+  #hub.is-back-in .feed-hero {
+    transition-delay: 0.1s;
+  }
+}
